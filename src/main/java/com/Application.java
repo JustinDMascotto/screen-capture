@@ -2,10 +2,14 @@ package com;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyListener;
+import org.jnativehook.mouse.NativeMouseMotionListener;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import com.service.ImageCaptureService;
+
+import java.util.EventListener;
 
 
 @SpringBootApplication
@@ -34,6 +38,8 @@ public class Application
             System.exit( 1 );
         }
 
-        GlobalScreen.addNativeKeyListener( new ImageCaptureService() );
+        final EventListener eventListener =  new ImageCaptureService();
+        GlobalScreen.addNativeKeyListener( (NativeKeyListener) eventListener );
+        GlobalScreen.addNativeMouseMotionListener( (NativeMouseMotionListener) eventListener );
     }
 }

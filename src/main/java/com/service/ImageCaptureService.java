@@ -2,6 +2,8 @@ package com.service;
 
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
+import org.jnativehook.mouse.NativeMouseEvent;
+import org.jnativehook.mouse.NativeMouseMotionListener;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -21,11 +23,16 @@ import static java.awt.GraphicsDevice.TYPE_RASTER_SCREEN;
 
 @Service
 public class ImageCaptureService
-      implements NativeKeyListener
+      implements NativeKeyListener, NativeMouseMotionListener
 {
     private final Set<Integer> keysHeldDown = new HashSet<>();
 
-    static final Set<List<Integer>> hotKeyCombos = new HashSet<>( Arrays.asList( Arrays.asList( 42, 30 ), // A
+    private Integer xpos = 0;
+
+    private Integer ypos = 0;
+
+    // Key code combos
+    static final Set<List<Integer>> keyCodeCombos = new HashSet<>( Arrays.asList( Arrays.asList( 42, 30 ), // A
                                                                                  Arrays.asList( 42, 44 ), // Z
                                                                                  Arrays.asList( 42, 16 ), // Q
                                                                                  Arrays.asList( 42, 2 ), // 1
@@ -39,16 +46,29 @@ public class ImageCaptureService
                                                                                  Arrays.asList( 42, 47 ) ) ); // V
 
 
-
     @Override
     public void nativeKeyPressed( NativeKeyEvent e )
     {
-        System.out.println( "Native Key Pressed: " + e.getKeyCode() );
         keysHeldDown.add( e.getKeyCode() );
         if ( this.isHotKeyPressed( keysHeldDown ) )
         {
-            this.getGraphicsDeviceList()
-                .forEach( this::printScreen );
+            waitForScreenToUpdate();
+            if( xpos > 0 && ypos > 0 )
+            {
+                this.printScreen( getGraphicsDeviceList().get( 0 ) );
+            }
+            else if ( ypos < 0 )
+            {
+                this.printScreen( getGraphicsDeviceList().get( 2) );
+            }
+            else if ( xpos < 0 )
+            {
+                this.printScreen( getGraphicsDeviceList().get( 1 ) );
+            }
+            else {
+                this.getGraphicsDeviceList()
+                        .forEach(this::printScreen);
+            }
         }
     }
 
@@ -66,10 +86,23 @@ public class ImageCaptureService
     }
 
 
+    @Override
+    public void nativeMouseMoved( NativeMouseEvent nativeMouseEvent )
+    {
+        xpos = nativeMouseEvent.getX();
+        ypos = nativeMouseEvent.getY();
+    }
+
+    @Override
+    public void nativeMouseDragged( NativeMouseEvent nativeMouseEvent)
+    {
+    }
+
+
     boolean isHotKeyPressed( final Set<Integer> keysHeldDown )
     {
-        return hotKeyCombos.stream()
-                           .anyMatch( hotKeyCombo -> hotKeyCombo.stream().allMatch( keysHeldDown::contains ) );
+        return keyCodeCombos.stream()
+                            .anyMatch( hotKeyCombo -> hotKeyCombo.stream().allMatch( keysHeldDown::contains ) );
     }
 
 
@@ -86,6 +119,7 @@ public class ImageCaptureService
     {
         try
         {
+            System.out.println( "Printing screen capture for screen " + screen.getIDstring() );
             Rectangle rec = new Rectangle( screen.getDefaultConfiguration().getBounds() );
             Robot robot = new Robot( screen );
             BufferedImage img = robot.createScreenCapture( rec );
@@ -104,5 +138,18 @@ public class ImageCaptureService
         final String localPath = new File( "" ).getAbsolutePath();
         final String nowFileFriendlyFormat = LocalDateTime.now().toString().replaceAll(":","_");
         return new File( localPath + "/" + nowFileFriendlyFormat+ "_screen" + screen.getIDstring().substring(3) + ".jpg" );
+    }
+
+
+    private void waitForScreenToUpdate()
+    {
+        try
+        {
+            Thread.sleep( 1000 );
+        }
+        catch ( Exception ex )
+        {
+            System.out.println( "Unable to wait for screen to update." );
+        }
     }
 }
