@@ -1,14 +1,11 @@
-package service;
+package com.service;
 
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 import org.springframework.stereotype.Service;
-import sun.awt.X11GraphicsDevice;
 
 import javax.imageio.ImageIO;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-import java.awt.Robot;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.time.LocalDateTime;
@@ -76,17 +73,16 @@ public class ImageCaptureService
     }
 
 
-    List<X11GraphicsDevice> getGraphicsDeviceList()
+    List<GraphicsDevice> getGraphicsDeviceList()
     {
         final GraphicsEnvironment graphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
         return Stream.of( graphicsEnvironment.getScreenDevices() )
                      .filter( device -> device.getType() == TYPE_RASTER_SCREEN )
-                     .map( device -> (X11GraphicsDevice) device )
                      .collect( Collectors.toList() );
     }
 
 
-    void printScreen( final X11GraphicsDevice screen )
+    void printScreen( final GraphicsDevice screen )
     {
         try
         {
@@ -103,9 +99,10 @@ public class ImageCaptureService
     }
 
 
-    File buildImageFile( final X11GraphicsDevice screen )
+    File buildImageFile( final GraphicsDevice screen )
     {
         final String localPath = new File( "" ).getAbsolutePath();
-        return new File( localPath + "/" + LocalDateTime.now() + "_screen" + screen.getScreen() + ".jpg" );
+        final String nowFileFriendlyFormat = LocalDateTime.now().toString().replaceAll(":","_");
+        return new File( localPath + "/" + nowFileFriendlyFormat+ "_screen" + screen.getIDstring().substring(3) + ".jpg" );
     }
 }

@@ -1,9 +1,9 @@
-package service;
+package com.service;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import sun.awt.X11GraphicsDevice;
 
+import java.awt.*;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ public class ImageCaptureServiceTest
 {
     private final ImageCaptureService application = new ImageCaptureService();
 
-    private final List<X11GraphicsDevice> graphicsDevices = application.getGraphicsDeviceList();
+    private final List<GraphicsDevice> graphicsDevices = application.getGraphicsDeviceList();
 
     @Test
     public void testBuildImageFile()
