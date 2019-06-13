@@ -1,5 +1,6 @@
-package service;
+package com.service;
 
+import com.service.ImageCaptureService;
 import org.junit.Ignore;
 import org.junit.Test;
 import sun.awt.X11GraphicsDevice;
